@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+{% block title %}SentimentAI — Home{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  HERO SECTION                                             -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="hero-section">
+  <!-- Animated background blobs -->
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="hero-blob hero-blob-3"></div>
+
+  <div class="container-xl hero-content">
+    <div class="row align-items-center gy-5">
+
+      <!-- Left: Text -->
+      <div class="col-lg-6 text-center text-lg-start">
+        <div class="hero-badge mb-3">
+          <i class="fa-solid fa-microchip me-2"></i>
+          AI-Powered NLP Analysis
+        </div>
+
+        <h1 class="hero-title">
+          Understand What<br/>
+          the World <span class="hero-highlight">Feels</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Real-time social media sentiment analysis powered by
+          <strong>Logistic Regression</strong> &amp; <strong>TF-IDF</strong>.
+          Trained on 50,000 tweets from the Sentiment140 dataset.
+        </p>
+
+        <div class="hero-stats d-flex gap-4 justify-content-center justify-content-lg-start flex-wrap mb-4">
+          <div class="hero-stat">
+            <span class="hero-stat-num">50K</span>
+            <span class="hero-stat-label">Training Tweets</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">~77.26%</span>
+            <span class="hero-stat-label">Accuracy</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-num">2</span>
+            <span class="hero-stat-label">Sentiment Classes</span>
+          </div>
+        </div>
+
+        <div class="d-flex gap-3 justify-content-center justify-content-lg-start flex-wrap">
+          <a href="#analyze-section" class="btn btn-glow btn-lg px-5">
+            <i class="fa-solid fa-bolt me-2"></i>Try It Now
+          </a>
+          <a href="{{ url_for('dashboard') }}" class="btn btn-outline-glass btn-lg px-5">
+            <i class="fa-solid fa-chart-pie me-2"></i>Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- Right: Floating card preview -->
+      <div class="col-lg-6 d-flex justify-content-center">
+        <div class="hero-card-preview">
+          <div class="preview-card glass-card p-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="preview-avatar">
+                <i class="fa-brands fa-twitter"></i>
+              </div>
+              <div>
+                <div class="preview-username">@user_tweet</div>
+                <div class="preview-time">just now</div>
+              </div>
+              <span class="badge badge-positive ms-auto">😊 Positive</span>
+            </div>
+            <p class="preview-text mb-3">
+              "This product is absolutely amazing! Best purchase I've made all year 🎉"
+            </p>
+            <div class="confidence-row">
+              <span class="conf-label">Confidence</span>
+              <div class="conf-bar-wrap">
+                <div class="conf-bar conf-bar-animated" style="width: 91%"></div>
+              </div>
+              <span class="conf-pct">91%</span>
+            </div>
+          </div>
+
+          <div class="preview-card glass-card p-4 mt-3" style="transform: translateX(30px);">
+            <div class="d-flex align-items-center gap-3 mb-3">
+              <div class="preview-avatar preview-avatar-neg">
+                <i class="fa-brands fa-twitter"></i>
+              </div>
+              <div>
+                <div class="preview-username">@another_user</div>
+                <div class="preview-time">2 mins ago</div>
+              </div>
+              <span class="badge badge-negative ms-auto">😢 Negative</span>
+            </div>
+            <p class="preview-text mb-3">
+              "Terrible experience. Customer support was awful and unhelpful."
+            </p>
+            <div class="confidence-row">
+              <span class="conf-label">Confidence</span>
+              <div class="conf-bar-wrap">
+                <div class="conf-bar conf-bar-neg conf-bar-animated" style="width: 87%"></div>
+              </div>
+              <span class="conf-pct">87%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div class="scroll-indicator">
+    <a href="#analyze-section">
+      <i class="fa-solid fa-chevron-down"></i>
+    </a>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  STATS CARDS SECTION (shown when results exist)           -->
+<!-- ══════════════════════════════════════════════════════════ -->
+{% if stats and stats.total > 0 %}
+<section class="stats-section py-4">
+  <div class="container-xl">
+    <div class="row g-3">
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-blue">
+            <i class="fa-solid fa-comments"></i>
+          </div>
+          <div class="stat-value">{{ stats.total }}</div>
+          <div class="stat-label">Total Analysed</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-green">
+            <i class="fa-solid fa-face-smile"></i>
+          </div>
+          <div class="stat-value text-success">{{ stats.positive_count }}</div>
+          <div class="stat-label">Positive</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-red">
+            <i class="fa-solid fa-face-frown"></i>
+          </div>
+          <div class="stat-value text-danger">{{ stats.negative_count }}</div>
+          <div class="stat-label">Negative</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-green">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
+          <div class="stat-value text-success">{{ stats.positive_pct }}%</div>
+          <div class="stat-label">Positive %</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-red">
+            <i class="fa-solid fa-arrow-trend-down"></i>
+          </div>
+          <div class="stat-value text-danger">{{ stats.negative_pct }}%</div>
+          <div class="stat-label">Negative %</div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-blue">
+            <i class="fa-solid fa-gauge-high"></i>
+          </div>
+          <div class="stat-value">{{ stats.avg_confidence }}%</div>
+          <div class="stat-label">Avg Confidence</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+{% endif %}
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  ANALYZE SECTION                                          -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="analyze-section py-5" id="analyze-section">
+  <div class="container-xl">
+
+    <div class="section-header text-center mb-5">
+      <div class="section-badge">
+        <i class="fa-solid fa-magnifying-glass me-2"></i>Live Analysis
+      </div>
+      <h2 class="section-title">Analyze Sentiment Instantly</h2>
+      <p class="section-subtitle">
+        Enter any tweet, comment, or review and get real-time sentiment prediction.
+      </p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+
+      <!-- ── Single Prediction Card ───────────────────────── -->
+      <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+          <div class="card-header-custom mb-4">
+            <div class="card-icon card-icon-blue">
+              <i class="fa-solid fa-comment-dots"></i>
+            </div>
+            <div>
+              <h5 class="card-title-custom mb-0">Single Comment Analysis</h5>
+              <p class="card-subtitle-custom mb-0">Paste any text to predict its sentiment</p>
+            </div>
+          </div>
+
+          <form action="{{ url_for('predict') }}" method="POST" id="analyzeForm">
+            <div class="mb-3">
+              <label for="textInput" class="form-label fw-semibold">
+                <i class="fa-solid fa-pen-to-square me-1 text-primary"></i>
+                Your Text
+              </label>
+              <textarea
+                id="textInput"
+                name="text"
+                class="form-control custom-textarea"
+                rows="5"
+                maxlength="2000"
+                placeholder="Type or paste a tweet, comment, or review here…"
+                required
+              >{% if result %}{{ result.original_text }}{% endif %}</textarea>
+              <div class="d-flex justify-content-between mt-1">
+                <small class="text-muted">Max 2,000 characters</small>
+                <small class="text-muted char-counter">
+                  <span id="charCount">0</span>/2000
+                </small>
+              </div>
+            </div>
+
+            <!-- Quick sample buttons -->
+            <div class="mb-3">
+              <small class="text-muted fw-semibold d-block mb-2">
+                <i class="fa-solid fa-wand-magic-sparkles me-1"></i>Quick Samples:
+              </small>
+              <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-sample btn-sm"
+                  data-text="I absolutely love this product! It's amazing and works perfectly.">
+                  😊 Positive
+                </button>
+                <button type="button" class="btn btn-sample btn-sm"
+                  data-text="This is the worst experience I've ever had. Totally disappointed.">
+                  😢 Negative
+                </button>
+                <button type="button" class="btn btn-sample btn-sm"
+                  data-text="Just got the new iPhone and I'm obsessed! Best phone ever made.">
+                  📱 Tech
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-glow w-100 btn-lg" id="analyzeBtn">
+              <i class="fa-solid fa-brain me-2"></i>
+              <span class="btn-text">Analyze Sentiment</span>
+              <span class="btn-spinner d-none">
+                <span class="spinner-border spinner-border-sm me-2"></span>Analysing…
+              </span>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ── Result Card ──────────────────────────────────── -->
+      <div class="col-lg-6">
+        <div class="glass-card p-4 h-100 result-card-wrapper">
+
+          {% if result %}
+          <!-- Result: filled -->
+          <div class="result-card result-card-{{ 'positive' if result.sentiment == 'Positive' else 'negative' }}">
+
+            <div class="result-header">
+              <div class="result-emoji-wrap">
+                <span class="result-emoji">{{ result.emoji }}</span>
+              </div>
+              <div>
+                <h4 class="result-label mb-0">{{ result.sentiment }}</h4>
+                <p class="result-sub mb-0">Sentiment Detected</p>
+              </div>
+              <span class="badge {{ 'badge-positive' if result.sentiment == 'Positive' else 'badge-negative' }} ms-auto fs-6 px-3 py-2">
+                {{ result.sentiment }}
+              </span>
+            </div>
+
+            <!-- Confidence -->
+            <div class="result-confidence mt-4">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="fw-semibold">
+                  <i class="fa-solid fa-gauge-high me-1"></i>Confidence Score
+                </span>
+                <span class="confidence-pct-label">{{ result.confidence }}%</span>
+              </div>
+              <div class="confidence-track">
+                <div
+                  class="confidence-fill {{ result.confidence_bar_class }}"
+                  style="width: {{ result.confidence }}%;"
+                  data-width="{{ result.confidence }}"
+                ></div>
+              </div>
+              <div class="d-flex justify-content-between mt-1">
+                <small class="text-muted">0% Uncertain</small>
+                <small class="text-muted">100% Certain</small>
+              </div>
+            </div>
+
+            <!-- Input text -->
+            <div class="result-text-box mt-4">
+              <div class="result-text-label">
+                <i class="fa-solid fa-quote-left me-1"></i>Analyzed Text
+              </div>
+              <p class="result-text-content">{{ result.original_text }}</p>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex gap-2 mt-4">
+              <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary btn-sm flex-fill">
+                <i class="fa-solid fa-chart-pie me-1"></i>View Dashboard
+              </a>
+              <button class="btn btn-outline-secondary btn-sm flex-fill" onclick="window.location.href='#analyze-section'">
+                <i class="fa-solid fa-rotate-left me-1"></i>Analyze Another
+              </button>
+            </div>
+
+          </div>
+
+          {% else %}
+          <!-- Result: empty state -->
+          <div class="result-empty d-flex flex-column align-items-center justify-content-center h-100 text-center py-5">
+            <div class="empty-icon-wrap mb-3">
+              <i class="fa-solid fa-comment-slash empty-icon"></i>
+            </div>
+            <h5 class="empty-title">No Analysis Yet</h5>
+            <p class="empty-sub">
+              Enter text in the form and click<br/>
+              <strong>"Analyze Sentiment"</strong> to see results here.
+            </p>
+            <div class="empty-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  CSV UPLOAD SECTION                                       -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="upload-section py-5">
+  <div class="container-xl">
+
+    <div class="section-header text-center mb-5">
+      <div class="section-badge">
+        <i class="fa-solid fa-file-csv me-2"></i>Bulk Analysis
+      </div>
+      <h2 class="section-title">Upload CSV for Bulk Analysis</h2>
+      <p class="section-subtitle">
+        Analyse thousands of comments at once. Upload a CSV with a
+        <code>text</code>, <code>tweet</code>, or <code>comment</code> column.
+      </p>
+    </div>
+
+    <div class="row justify-content-center">
+      <div class="col-lg-8">
+        <div class="glass-card p-5">
+
+          <form action="{{ url_for('upload_csv') }}" method="POST"
+                enctype="multipart/form-data" id="csvForm">
+
+            <!-- Drop Zone -->
+            <div class="drop-zone" id="dropZone">
+              <input type="file" name="csv_file" id="csvFileInput"
+                     accept=".csv" class="drop-zone-input" required />
+
+              <div class="drop-zone-content" id="dropZoneContent">
+                <div class="drop-icon">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                </div>
+                <h5 class="drop-title">Drag &amp; Drop your CSV here</h5>
+                <p class="drop-sub">or <span class="drop-browse">browse files</span></p>
+                <p class="drop-hint">Supports .csv &bull; Max 5,000 rows</p>
+              </div>
+
+              <div class="drop-zone-preview d-none" id="dropZonePreview">
+                <div class="file-preview-icon">
+                  <i class="fa-solid fa-file-csv"></i>
+                </div>
+                <div>
+                  <div class="file-preview-name" id="fileName">No file</div>
+                  <div class="file-preview-size" id="fileSize"></div>
+                </div>
+                <button type="button" class="btn-remove-file" id="removeFile">
+                  <i class="fa-solid fa-xmark"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Format hint -->
+            <div class="csv-hint-box mt-4">
+              <div class="d-flex align-items-start gap-3">
+                <i class="fa-solid fa-circle-info text-primary mt-1"></i>
+                <div>
+                  <strong>Expected CSV Format:</strong>
+                  <p class="mb-1 mt-1">
+                    Your CSV must contain one of these column names:
+                    <code>text</code>, <code>tweet</code>, <code>comment</code>, <code>review</code>, or <code>message</code>.
+                  </p>
+                  <div class="csv-example">
+                    <span class="csv-col">text</span><br/>
+                    <span class="csv-row">I love this so much!</span><br/>
+                    <span class="csv-row">This is terrible quality.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-glow w-100 btn-lg mt-4" id="uploadBtn">
+              <i class="fa-solid fa-upload me-2"></i>
+              <span class="btn-text">Upload &amp; Analyze</span>
+              <span class="btn-spinner d-none">
+                <span class="spinner-border spinner-border-sm me-2"></span>
+                Processing… This may take a moment.
+              </span>
+            </button>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  HOW IT WORKS SECTION                                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="how-section py-5">
+  <div class="container-xl">
+
+    <div class="section-header text-center mb-5">
+      <div class="section-badge">
+        <i class="fa-solid fa-gears me-2"></i>Methodology
+      </div>
+      <h2 class="section-title">How It Works</h2>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+
+      <div class="col-md-6 col-lg-3">
+        <div class="how-card glass-card p-4 text-center h-100">
+          <div class="how-step">01</div>
+          <div class="how-icon">
+            <i class="fa-solid fa-broom"></i>
+          </div>
+          <h6 class="how-title">Text Preprocessing</h6>
+          <p class="how-desc">
+            URLs, mentions, hashtags, and noise removed. NLTK stopword
+            filtering + Porter stemming applied.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="how-card glass-card p-4 text-center h-100">
+          <div class="how-step">02</div>
+          <div class="how-icon">
+            <i class="fa-solid fa-table-cells"></i>
+          </div>
+          <h6 class="how-title">TF-IDF Vectorization</h6>
+          <p class="how-desc">
+            Text converted to numerical features using
+            TF-IDF with 75K vocab and bigram support.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="how-card glass-card p-4 text-center h-100">
+          <div class="how-step">03</div>
+          <div class="how-icon">
+            <i class="fa-solid fa-robot"></i>
+          </div>
+          <h6 class="how-title">ML Classification</h6>
+          <p class="how-desc">
+            Logistic Regression model predicts sentiment with
+            probability scores for each class.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-md-6 col-lg-3">
+        <div class="how-card glass-card p-4 text-center h-100">
+          <div class="how-step">04</div>
+          <div class="how-icon">
+            <i class="fa-solid fa-chart-bar"></i>
+          </div>
+          <h6 class="how-title">Visual Analytics</h6>
+          <p class="how-desc">
+            Results displayed with confidence scores, pie charts,
+            bar charts, and top word analysis.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+{% endblock %}

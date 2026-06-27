@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+{% block title %}SentimentAI — Dashboard{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  PAGE HEADER                                              -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="page-header-section">
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="container-xl page-header-content">
+    <div class="row align-items-center">
+      <div class="col-md-7">
+        <div class="hero-badge mb-2">
+          <i class="fa-solid fa-chart-pie me-2"></i>Analytics Dashboard
+        </div>
+        <h1 class="page-header-title">Sentiment Dashboard</h1>
+        <p class="page-header-sub">
+          Visual breakdown of all analysed comments — charts, word clouds, and prediction history.
+        </p>
+      </div>
+      <div class="col-md-5 text-md-end mt-3 mt-md-0 d-flex gap-2 justify-content-md-end flex-wrap">
+        {% if has_data %}
+        <a href="{{ url_for('download_csv') }}" class="btn btn-glow px-4">
+          <i class="fa-solid fa-download me-2"></i>Download CSV Report
+        </a>
+        <a href="{{ url_for('clear_session') }}" class="btn btn-outline-glass px-4">
+          <i class="fa-solid fa-rotate me-2"></i>Reset
+        </a>
+        {% endif %}
+        <a href="{{ url_for('index') }}#analyze-section" class="btn btn-outline-glass px-4">
+          <i class="fa-solid fa-plus me-2"></i>New Analysis
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  NO DATA STATE                                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+{% if not has_data %}
+<section class="py-5">
+  <div class="container-xl">
+    <div class="no-data-card glass-card text-center p-5 mx-auto" style="max-width:560px;">
+      <div class="no-data-icon mb-4">
+        <i class="fa-solid fa-chart-pie"></i>
+      </div>
+      <h4 class="no-data-title">No Data Yet</h4>
+      <p class="no-data-sub mb-4">
+        Analyse a comment or upload a CSV to populate the dashboard with charts and statistics.
+      </p>
+      <div class="d-flex gap-3 justify-content-center flex-wrap">
+        <a href="{{ url_for('index') }}#analyze-section" class="btn btn-glow px-4">
+          <i class="fa-solid fa-comment-dots me-2"></i>Analyse Text
+        </a>
+        <a href="{{ url_for('index') }}#csv-section" class="btn btn-outline-glass px-4">
+          <i class="fa-solid fa-file-csv me-2"></i>Upload CSV
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% else %}
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  STATISTICS CARDS                                         -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="py-4">
+  <div class="container-xl">
+    <div class="row g-3">
+
+      <!-- Total -->
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-blue">
+            <i class="fa-solid fa-comments"></i>
+          </div>
+          <div class="stat-value">{{ stats.total }}</div>
+          <div class="stat-label">Total Comments</div>
+        </div>
+      </div>
+
+      <!-- Positive count -->
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-green">
+            <i class="fa-solid fa-face-smile"></i>
+          </div>
+          <div class="stat-value text-success">{{ stats.positive_count }}</div>
+          <div class="stat-label">Positive</div>
+        </div>
+      </div>
+
+      <!-- Negative count -->
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-red">
+            <i class="fa-solid fa-face-frown"></i>
+          </div>
+          <div class="stat-value text-danger">{{ stats.negative_count }}</div>
+          <div class="stat-label">Negative</div>
+        </div>
+      </div>
+
+      <!-- Positive % -->
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-green">
+            <i class="fa-solid fa-arrow-trend-up"></i>
+          </div>
+          <div class="stat-value text-success">{{ stats.positive_pct }}%</div>
+          <div class="stat-label">Positive %</div>
+        </div>
+      </div>
+
+      <!-- Negative % -->
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-red">
+            <i class="fa-solid fa-arrow-trend-down"></i>
+          </div>
+          <div class="stat-value text-danger">{{ stats.negative_pct }}%</div>
+          <div class="stat-label">Negative %</div>
+        </div>
+      </div>
+
+      <!-- Avg Confidence -->
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card glass-card text-center p-3 h-100">
+          <div class="stat-icon stat-icon-blue">
+            <i class="fa-solid fa-gauge-high"></i>
+          </div>
+          <div class="stat-value">{{ stats.avg_confidence }}%</div>
+          <div class="stat-label">Avg Confidence</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  CHARTS ROW                                               -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="py-4">
+  <div class="container-xl">
+    <div class="row g-4">
+
+      <!-- Pie / Doughnut Chart -->
+      <div class="col-lg-5">
+        <div class="glass-card p-4 h-100">
+          <div class="card-header-custom mb-4">
+            <div class="card-icon card-icon-blue">
+              <i class="fa-solid fa-chart-pie"></i>
+            </div>
+            <div>
+              <h5 class="card-title-custom mb-0">Sentiment Distribution</h5>
+              <p class="card-subtitle-custom mb-0">Positive vs Negative split</p>
+            </div>
+          </div>
+          <div class="chart-container-pie">
+            <canvas id="pieChart"></canvas>
+          </div>
+          <!-- Legend -->
+          <div class="d-flex justify-content-center gap-4 mt-3">
+            <div class="chart-legend-item">
+              <span class="legend-dot" style="background:#22c55e"></span>
+              <span>Positive ({{ stats.positive_pct }}%)</span>
+            </div>
+            <div class="chart-legend-item">
+              <span class="legend-dot" style="background:#ef4444"></span>
+              <span>Negative ({{ stats.negative_pct }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bar Chart -->
+      <div class="col-lg-7">
+        <div class="glass-card p-4 h-100">
+          <div class="card-header-custom mb-4">
+            <div class="card-icon card-icon-purple">
+              <i class="fa-solid fa-chart-bar"></i>
+            </div>
+            <div>
+              <h5 class="card-title-custom mb-0">Confidence Distribution</h5>
+              <p class="card-subtitle-custom mb-0">Prediction confidence across all comments</p>
+            </div>
+          </div>
+          <div class="chart-container-bar">
+            <canvas id="barChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  TOP WORDS ROW                                            -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="py-4">
+  <div class="container-xl">
+    <div class="row g-4">
+
+      <!-- Top Positive Words -->
+      <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+          <div class="card-header-custom mb-4">
+            <div class="card-icon card-icon-green">
+              <i class="fa-solid fa-face-smile"></i>
+            </div>
+            <div>
+              <h5 class="card-title-custom mb-0">Most Common Positive Words</h5>
+              <p class="card-subtitle-custom mb-0">Frequent words in positive comments</p>
+            </div>
+          </div>
+
+          {% if top_pos %}
+          <div class="word-list">
+            {% for item in top_pos %}
+            <div class="word-row">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="word-rank">#{{ loop.index }}</span>
+                <span class="word-text">{{ item.word }}</span>
+                <span class="word-count ms-auto">{{ item.count }}</span>
+              </div>
+              <div class="word-bar-track">
+                <div
+                  class="word-bar word-bar-pos"
+                  style="width: {{ [(item.count / top_pos[0].count * 100)|int, 100]|min }}%"
+                ></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="fa-solid fa-face-meh fa-2x mb-2 d-block opacity-50"></i>
+            No positive comments found.
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      <!-- Top Negative Words -->
+      <div class="col-lg-6">
+        <div class="glass-card p-4 h-100">
+          <div class="card-header-custom mb-4">
+            <div class="card-icon card-icon-red">
+              <i class="fa-solid fa-face-frown"></i>
+            </div>
+            <div>
+              <h5 class="card-title-custom mb-0">Most Common Negative Words</h5>
+              <p class="card-subtitle-custom mb-0">Frequent words in negative comments</p>
+            </div>
+          </div>
+
+          {% if top_neg %}
+          <div class="word-list">
+            {% for item in top_neg %}
+            <div class="word-row">
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="word-rank">#{{ loop.index }}</span>
+                <span class="word-text">{{ item.word }}</span>
+                <span class="word-count ms-auto">{{ item.count }}</span>
+              </div>
+              <div class="word-bar-track">
+                <div
+                  class="word-bar word-bar-neg"
+                  style="width: {{ [(item.count / top_neg[0].count * 100)|int, 100]|min }}%"
+                ></div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center text-muted py-4">
+            <i class="fa-solid fa-face-meh fa-2x mb-2 d-block opacity-50"></i>
+            No negative comments found.
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  RECENT PREDICTIONS TABLE                                 -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<section class="py-4 pb-5">
+  <div class="container-xl">
+    <div class="glass-card p-4">
+
+      <div class="card-header-custom mb-4">
+        <div class="card-icon card-icon-blue">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+        </div>
+        <div>
+          <h5 class="card-title-custom mb-0">Recent Predictions</h5>
+          <p class="card-subtitle-custom mb-0">Last 10 analysed comments</p>
+        </div>
+        {% if has_data %}
+        <a href="{{ url_for('download_csv') }}" class="btn btn-glow btn-sm ms-auto px-4">
+          <i class="fa-solid fa-download me-1"></i>Export All
+        </a>
+        {% endif %}
+      </div>
+
+      {% if recent %}
+      <div class="table-responsive">
+        <table class="table dashboard-table align-middle mb-0">
+          <thead>
+            <tr>
+              <th style="width:5%">#</th>
+              <th style="width:45%">Comment</th>
+              <th style="width:15%" class="text-center">Sentiment</th>
+              <th style="width:25%">Confidence</th>
+              <th style="width:10%" class="text-center">Emoji</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in recent %}
+            <tr class="table-row-animate">
+              <td class="text-muted small">{{ loop.index }}</td>
+
+              <td>
+                <span class="table-text">
+                  {{ row.original_text | truncate_text(80) }}
+                </span>
+              </td>
+
+              <td class="text-center">
+                <span class="badge {{ row.sentiment | sentiment_badge }} px-3 py-2">
+                  {{ row.sentiment }}
+                </span>
+              </td>
+
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="table-conf-track flex-fill">
+                    <div
+                      class="table-conf-fill {{ 'bg-success' if row.sentiment == 'Positive' else 'bg-danger' }}"
+                      style="width: {{ row.confidence }}%"
+                    ></div>
+                  </div>
+                  <span class="conf-num">{{ row.confidence }}%</span>
+                </div>
+              </td>
+
+              <td class="text-center fs-5">
+                {{ row.emoji }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center text-muted py-4">
+        <i class="fa-solid fa-inbox fa-2x mb-2 d-block opacity-50"></i>
+        No predictions recorded yet.
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+{% endif %} {# end has_data #}
+
+{% endblock %}
+
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!--  CHART INITIALISATION                                     -->
+<!-- ══════════════════════════════════════════════════════════ -->
+{% block extra_scripts %}
+{% if has_data %}
+<script>
+  // Data injected from Flask via Jinja2
+  const PIE_DATA = {{ pie_json | safe }};
+  const BAR_DATA = {{ bar_json | safe }};
+
+  document.addEventListener("DOMContentLoaded", function () {
+
+    // ── Pie / Doughnut Chart ─────────────────────────────────
+    const pieCtx = document.getElementById("pieChart");
+    if (pieCtx) {
+      new Chart(pieCtx, {
+        type: "doughnut",
+        data: PIE_DATA,
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          cutout: "65%",
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function (ctx) {
+                  const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                  const pct   = ((ctx.parsed / total) * 100).toFixed(1);
+                  return ` ${ctx.label}: ${ctx.parsed} (${pct}%)`;
+                }
+              }
+            }
+          },
+          animation: {
+            animateRotate: true,
+            duration: 1200,
+            easing: "easeInOutQuart"
+          }
+        }
+      });
+    }
+
+    // ── Bar Chart ────────────────────────────────────────────
+    const barCtx = document.getElementById("barChart");
+    if (barCtx) {
+      new Chart(barCtx, {
+        type: "bar",
+        data: BAR_DATA,
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          interaction: { mode: "index", intersect: false },
+          plugins: {
+            legend: {
+              display: true,
+              position: "top",
+              labels: {
+                color: "#94a3b8",
+                font: { size: 12 },
+                usePointStyle: true,
+                pointStyleWidth: 10
+              }
+            },
+            tooltip: {
+              callbacks: {
+                title: (items) => `Confidence: ${items[0].label}`,
+                label: (ctx) => ` ${ctx.dataset.label}: ${ctx.parsed.y} comments`
+              }
+            }
+          },
+          scales: {
+            x: {
+              stacked: false,
+              grid: { color: "rgba(148,163,184,0.1)" },
+              ticks: { color: "#94a3b8", font: { size: 11 } }
+            },
+            y: {
+              stacked: false,
+              beginAtZero: true,
+              grid: { color: "rgba(148,163,184,0.1)" },
+              ticks: {
+                color: "#94a3b8",
+                font: { size: 11 },
+                stepSize: 1,
+                precision: 0
+              }
+            }
+          },
+          animation: { duration: 1000, easing: "easeInOutQuart" }
+        }
+      });
+    }
+
+  });
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Model files (large — regenerate with train_model.py)
+ml/models/*.pkl
+
+# Database
+sentiment_app.db
+
+# Uploads
+uploads/
+
+# Dataset (large — download separately from Kaggle)
+data/sentiment.csv
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env file
+.env
